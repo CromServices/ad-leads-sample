@@ -470,7 +470,7 @@ describe("saved before and after", () => {
     assert.match(demo, /Sam's Café · shop and stock/);
     assert.doesNotMatch(demo, /\b\d{1,2}:\d{2}\s*(am|pm)\b/i);
     assert.equal((demo.match(/>What we checked</g) ?? []).length, 1);
-    assert.match(demo, /<title>Shop-to-stock order sync: sample<\/title>/);
+    assert.match(demo, /<title>Shop-to-stock order sync · Crom Services<\/title>/);
     const visible = demo.replace(/<[^>]*>/g, " ");
     assert.doesNotMatch(visible, /webhook|hmac|signature|payload|\b401\b|\b200\b/i);
     assert.doesNotMatch(demo, /\d{4}-\d{2}-\d{2}T/);

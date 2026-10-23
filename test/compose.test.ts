@@ -39,21 +39,21 @@ describe("shared server routes", () => {
 
   it("keeps the leads pages on their existing routes", async () => {
     const home = await html("/");
-    assert.match(home, /<title>Ad leads into your sheet: sample<\/title>/);
+    assert.match(home, /<title>Ad leads into your sheet · Crom Services<\/title>/);
     assert.match(home, /Catering enquiries land in your sheet/);
     for (const route of ["/sheet", "/alerts", "/happened", "/before-after", "/before-after?view=triage"]) {
       const page = await html(route);
-      assert.match(page, /<title>Ad leads into your sheet: sample<\/title>/, route);
+      assert.match(page, /<title>Ad leads into your sheet · Crom Services<\/title>/, route);
     }
   });
 
   it("serves the shop pages and the shop home without taking over /", async () => {
     for (const route of ["/shop", "/stock", "/history", "/shop-before-after", "/shop-before-after?view=triage"]) {
       const page = await html(route);
-      assert.match(page, /<title>Shop-to-stock order sync: sample<\/title>/, route);
+      assert.match(page, /<title>Shop-to-stock order sync · Crom Services<\/title>/, route);
     }
     const shopHome = await html("/shop-and-stock");
-    assert.match(shopHome, /<title>Shop-to-stock order sync: sample<\/title>/);
+    assert.match(shopHome, /<title>Shop-to-stock order sync · Crom Services<\/title>/);
     assert.match(shopHome, /Connect your systems/);
     assert.match(shopHome, /Place an order once/);
   });

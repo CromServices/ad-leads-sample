@@ -30,6 +30,7 @@ export const CROM_HEADER = `
 export const CROM_FOOTER = `
 <footer class="crom-footer">
   <p class="crom-footer__line">Crom Services · Australia</p>
+  <p class="crom-footer__line">Sam&#39;s Café is a fictional business.</p>
   <div class="crom-footer__credit">
     <span class="crom-when-light">
       <a href="https://cromservices.com.au" target="_blank" rel="noopener noreferrer"

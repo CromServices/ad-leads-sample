@@ -66,7 +66,7 @@ describe("GET / landing page", () => {
   });
 
   it("leads with the owner outcome and lists each view once", () => {
-    assert.match(html, /<title>Shop-to-stock order sync: sample<\/title>/);
+    assert.match(html, /<title>Shop-to-stock order sync · Crom Services<\/title>/);
     assert.match(html, /<h1 class="crom-h1">Connect your systems<\/h1>/);
     assert.match(html, new RegExp(`<p class="crom-lead"[^>]*>${STORY.lead}</p>`));
     assert.doesNotMatch(html, /holds no real data|Demo shop, not a real business|See the code on GitHub/);
@@ -103,7 +103,7 @@ describe("GET / landing page", () => {
       assert.doesNotMatch(page, /<script/, path);
       assert.doesNotMatch(visibleText(page), JARGON, path);
       assert.doesNotMatch(page, /\d{4}-\d{2}-\d{2}T|\/admin|hmac|signature|payload|bearer/i, path);
-      assert.match(page, /<title>Shop-to-stock order sync: sample<\/title>/, path);
+      assert.match(page, /<title>Shop-to-stock order sync · Crom Services<\/title>/, path);
       assert.doesNotMatch(page, /Demo shop, not a real business|See the code on GitHub|Sample · example project/, path);
       assert.match(page, /Sam's Café · shop and stock/, path);
       assert.doesNotMatch(visibleText(page), /\b\d{1,2}:\d{2}\s*(am|pm)\b/i, path);

@@ -11,7 +11,7 @@ const products = JSON.parse(
 ) as { name: string; onHand: number }[];
 
 export const STORY = {
-  pageTitle: "Shop-to-stock order sync: sample",
+  pageTitle: "Shop-to-stock order sync · Crom Services",
   shopName: "Sam's Café · shop and stock",
   h1: "Connect your systems",
   lead: "Place an order once. It shows in the online shop and in stock.",
