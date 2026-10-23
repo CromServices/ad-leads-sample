@@ -1,0 +1,13 @@
+node_modules
+dist
+.git
+.github
+test
+**/test
+*.md
+.env
+.env.*
+.gitignore
+LICENSE
+.cursor
+docs

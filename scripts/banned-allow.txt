@@ -1,0 +1,15 @@
+# Allow-list. Code and tests are skipped because they are not in the public scan.
+# Public scan (what customers see):
+#   docs/**/*.html
+#   shared/landing.ts          header and footer template
+#   features/**/pages.ts       page templates
+#   features/**/story.ts       page copy
+#   features/**/fixtures/**/*.{html,txt,md}   capture text
+#
+# JSON fixtures, README files, and every other .ts file are allow-listed.
+#
+# The check also boots the app and scans the HTML each customer route returns.
+# Rendered visible text fails on any email address. There is no @example.com exception.
+# The letters "example" anywhere in that visible text also fail the check.
+# Every img src, img/source srcset, and stylesheet on those pages is fetched.
+# A response that is not HTTP 200 fails the check. There is no footer exception.

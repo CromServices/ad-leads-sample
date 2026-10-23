@@ -1,0 +1,130 @@
+# Ad leads into a sheet · Crom Services
+
+
+> Moved here on 23 Oct 2026 from `CromServices/api-webhook-sample` (history up to 429795c). The old URLs now serve the plain signed-webhook receiver again.
+A scoped Express receiver. `POST /webhook` still checks an HMAC-SHA256 signature over the raw body. `GET` and `POST /leadgen` take a Facebook Lead Ads notification, look the lead up locally, and either write a sheet row plus an owner alert, or leave it for a hand copy.
+
+<!-- Built on CromServices/crom-ts-api-starter at b2cd23a (package.json "starter.config"). Shared files come from the starter; do not edit them here first. -->
+
+## What it is
+
+A public sample for one job: catering enquiries from a Facebook lead form land in a sheet, and the owner is told. It is for illustration only, not a client system. There is no Meta account, no live send, and no spend. The people are fictional.
+
+The Facebook app secret and the verify token are generated in memory when `META_APP_SECRET` and `META_VERIFY_TOKEN` are unset. They are never written into the repo. `DEMO_ADMIN_TOKEN` unlocks the private controls used to run the two ways; leave it unset and those controls stay closed. The original signed check still uses the published value `crom-demo-webhook-secret-v1`.
+
+Public pages stay in plain language (names, phones, what they asked for). The browser title is the only place that says sample. Labels live in `features/ad-leads/story.ts`. Counts on the pages are read from the stored runs.
+
+Shop-to-stock orders live in `features/order-sync/`. Catering lead ads live in `features/ad-leads/`. The header, footer and signature check live in `shared/`. `src/server.ts` starts both. Existing lead routes stay where they were. The shop home is also at `GET /shop-and-stock`, so `GET /` stays the leads page. Shop pages are `GET /shop`, `GET /stock`, `GET /history` and `GET /shop-before-after`. `GET /demo` redirects there.
+
+- `GET /` shows the leads Facebook has and the rows in the sheet, from the stored file.
+- `GET /sheet` is the sheet: date, name, phone, email, what they want, source form, and New or Contacted.
+- `GET /alerts` is the owner alerts, stored here. Nothing is emailed or texted.
+- `GET /happened` is what the current run did, in plain language, with no clock times.
+- `GET /before-after` reads the saved before-run and after-run. `GET /before-after?view=triage` counts the before-run: what was checked, what was found, what was fixed first, and what was left for later.
+- `GET /health` returns `{"ok":true}`.
+- `GET /leadgen` answers the verify handshake (`hub.mode`, `hub.verify_token`, `hub.challenge`).
+- `POST /leadgen` checks `X-Hub-Signature-256` (`sha256=<hex>` HMAC-SHA256 of the raw body, app secret). A leadgen change is then filled in from a local stand-in of the lead-details lookup. A bad signature is turned away and nothing is written.
+- `POST /webhook` is the original check: `X-Signature-256` over the raw body, `200 {"received":true}` or `401` (fail-closed).
+
+The old way stores the lead and waits. A delayed hand copy then writes the rows it already had, misses a lead that arrived during the wait, and repeats a lead that was sent twice. It writes no alerts. The fixed way writes one row, blocks a duplicate, tries a failed delivery once, and stores an alert.
+
+| Path | Purpose |
+|---|---|
+| `shared/verify.ts` | Sign and verify helpers (timing-safe compare) |
+| `shared/landing.ts` | crom-shared v1.0.2 header and footer, pinned |
+| `features/ad-leads/` | Lead ads sample: code, tests, fixtures, README |
+| `features/order-sync/` | Shop-to-stock sample: code, tests, fixtures, README |
+| `src/compose.ts` | One server, both samples, existing routes kept |
+| `src/server.ts` | Listen entry (`PORT`, `HOST`, `WEBHOOK_SECRET`, `META_APP_SECRET`, `META_VERIFY_TOKEN`, `DATA_PATH`, `ORDER_DATA_PATH`, `DEMO_ADMIN_TOKEN`) |
+| `docs/` | Plain-language page for GitHub Pages |
+| `Dockerfile`, `fly.toml` | Disposable host (`crom-ad-leads-sample`, `syd`). This branch does not deploy. |
+
+## What it proves
+
+- A Lead Ads notification checked the way Facebook signs it, then filled in from the lead-details shape, with a verify handshake.
+- A bad signature never becomes a row. A repeated lead, or the same person again inside a short window, does not become a second row. A failed delivery is tried once. Phones are stored in Australian form.
+- The hand-copy path really misses and repeats, and writes no alert. The fixed path writes the row and the alert.
+- The same toolchain as every Crom Services TypeScript API: strict TypeScript, `node:test`, a multi-stage `Dockerfile` and `fly.toml`.
+
+Does not prove: a live Meta app, a real CRM, or a sent email or text.
+
+## Live link
+
+- Live app: https://crom-ad-leads-sample.fly.dev
+- Health: https://crom-ad-leads-sample.fly.dev/health
+- Owner page (plain language): https://cromservices.github.io/ad-leads-sample/
+
+```bash
+curl -sS https://crom-ad-leads-sample.fly.dev/health
+# {"ok":true}
+```
+
+### Try it with curl
+
+The published demo secret is `crom-demo-webhook-secret-v1` (a public sample value, never a client secret). The signature is HMAC-SHA256 over the **raw** JSON body, sent in `X-Signature-256` as hex or `sha256=<hex>`.
+
+Valid signature for the fixed body `{"event":"ping"}`:
+
+```bash
+curl -sS -X POST https://crom-ad-leads-sample.fly.dev/webhook \
+  -H 'content-type: application/json' \
+  -H 'x-signature-256: sha256=2f95da3b8a47b656b7e8a980a32916dce258b449cf738632c5ffac988b6f3e9c' \
+  --data '{"event":"ping"}'
+# {"received":true}
+```
+
+Compute the same hex yourself:
+
+```bash
+printf '%s' '{"event":"ping"}' \
+  | openssl dgst -sha256 -hmac 'crom-demo-webhook-secret-v1' -hex \
+  | awk '{print $NF}'
+```
+
+Fail-closed, missing or bad signature:
+
+```bash
+curl -sS -o /dev/stderr -w '%{http_code}\n' -X POST https://crom-ad-leads-sample.fly.dev/webhook \
+  -H 'content-type: application/json' --data '{"event":"ping"}'
+# {"error":"invalid signature"}
+# 401
+
+curl -sS -o /dev/stderr -w '%{http_code}\n' -X POST https://crom-ad-leads-sample.fly.dev/webhook \
+  -H 'content-type: application/json' \
+  -H 'x-signature-256: sha256=0000000000000000000000000000000000000000000000000000000000000000' \
+  --data '{"event":"ping"}'
+# {"error":"invalid signature"}
+# 401
+```
+
+## Run in 3 commands
+
+Needs Node 20 or newer.
+
+```bash
+npm install
+npm test
+npm run dev        # http://localhost:3000/
+```
+
+`npm run build` compiles to `dist/`, and `npm start` runs the compiled server. `PORT` defaults to 3000. `WEBHOOK_SECRET` defaults to the published demo value. `META_APP_SECRET` and `META_VERIFY_TOKEN` default to a new random value each start. `npm run sample` runs the before and after leads against a fresh file.
+
+Deploy: a push to `main` runs `.github/workflows/fly.yml`, which deploys to Fly when the `FLY_API_TOKEN` repository secret is set (and skips cleanly when it is not). `docs/` is published by `.github/workflows/pages.yml`.
+
+## Reuse for a new job
+
+1. **Start from the template**: use [CromServices/crom-ts-api-starter](https://github.com/CromServices/crom-ts-api-starter) and set `starter.config.ref` in `package.json` to the starter commit you started from.
+2. **Bring the webhook code**: copy `shared/verify.ts` and the `/webhook` route from `features/order-sync/app.ts`, and set the signature header name and secret source for the job's sender.
+3. **Set the app name** in `fly.toml` and keep secrets in `fly secrets set WEBHOOK_SECRET=...`, never in the repo.
+4. **Deploy** and put the URL under **Live link**.
+
+## Footer
+
+---
+
+Crom Services · Australia · cromservices@gmail.com
+Site: https://cromservices.com.au · Packs: https://cromservices.github.io/job-page-sample/packs/
+
+<a href="https://cromservices.com.au"><picture><source media="(prefers-color-scheme: dark)" srcset="https://cromservices.com.au/brand/credit/crom-credit-lockup-dark@2x.png"><img src="https://cromservices.com.au/brand/credit/crom-credit-lockup-light@2x.png" width="175" height="20" alt="Built by Crom Services"></picture></a>
+
+MIT, see LICENSE.

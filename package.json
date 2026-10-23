@@ -1,0 +1,38 @@
+{
+  "name": "crom-ad-leads-sample",
+  "version": "2.0.0",
+  "description": "Crom Services public sample: Facebook lead ads into a sheet, with an owner alert",
+  "private": true,
+  "type": "module",
+  "starter": {
+    "config": {
+      "name": "ad-leads-sample",
+      "description": "A scoped Express webhook receiver: POST /webhook checks an HMAC-SHA256 signature over the raw body and replies 200 or 401.",
+      "liveUrl": "https://crom-ad-leads-sample.fly.dev",
+      "source": "CromServices/crom-ts-api-starter",
+      "ref": "b2cd23a"
+    }
+  },
+  "scripts": {
+    "dev": "node --import tsx --watch src/server.ts",
+    "start": "node dist/src/server.js",
+    "build": "tsc -p tsconfig.build.json",
+    "check": "tsc --noEmit",
+    "test": "node --import tsx --test features/*/test/*.test.ts test/*.test.ts",
+    "sample": "node --import tsx features/ad-leads/run-sample.ts",
+    "check:banned": "bash scripts/check-banned.sh"
+  },
+  "dependencies": {
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^22.20.5",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  }
+}
